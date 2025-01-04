@@ -90,10 +90,42 @@ def mpl_points(x1,y1, x2,y2):
     pass
 
 def circle_points(x, y, cx, cy, points):
-    pass
+    points.extend([
+        (x + cx, y + cy),   # zone 1 (native zone)
+        (y + cx, x + cy),   # zone 0
+        (y + cx, -x + cy),  # zone 7
+        (x + cx, -y + cy),  # zone 6
+        (-x + cx, -y + cy), # zone 5
+        (-y + cx, -x + cy), # zone 4
+        (-y + cx, x + cy),  # zone 3
+        (-x + cx, y + cy)   # zone 2
+    ])
 
 def mpc_points(cx,cy,radius):
-    pass
+    points =[]
+    d=1-radius  #Initial decision variable
+    x=0
+    y =radius
+    
+    #plot initial points at (0,r)
+    circle_points(x,y,cx, cy,points)
+    
+    # Continue while x< y
+    while x<y:
+        if d< 0:
+            # Move to east pixel
+            d =d+2*x +3
+            x=x +1
+        else:
+            # Move to south-east pixel
+            d= d+2*x - 2*y+5
+            x = x +1
+            y=y -1
+        
+        circle_points(x,y, cx,cy,points)
+    
+    return points
+    
 
 # Game states
 MENU= 0
@@ -112,9 +144,59 @@ class GameState:
     def set_difficulty(self,is_hard_mode):
         self.speed_multiplier=5.0 if is_hard_mode else 2.0
         self.reset_game()
-       
+
+
     def draw_pacman(self):
-        pass
+        glColor3f(1.0, 1.0,0.0)  # Yellow color
+        
+        #Calculate mouth animation (etween 0 and 50 degrees)
+        time_factor =math.sin(time.time() * 10)  #Ranges from -1 to 1
+        mouth_angle=25 *(1 +time_factor)      #Rangesfrom 0 to 50
+        
+        #Determine mouth direction with clear conditions
+        mouth_direction=0  #Default right direction
+        if self.keys['w']:
+            if not self.keys['a'] and not self.keys['d']:  # Only if not moving diagonally
+                mouth_direction=90
+        elif self.keys['s']:
+            if not self.keys['a'] and not self.keys['d']:
+                mouth_direction =270
+        elif self.keys['a']:
+            mouth_direction=180
+        elif self.keys['d']:
+            mouth_direction=0
+
+        #Draw Pac-Man using points
+        glBegin(GL_POINTS)
+        
+        circle_points = mpc_points(self.pacman_x, self.pacman_y, PACMAN_RADIUS)
+        
+        #Process each point to create mouth effect
+        for x,y in circle_points:
+            #Calculate angle of current point relative to center
+            dx = x -self.pacman_x
+            dy = y- self.pacman_y
+            angle= math.degrees(math.atan2(dy, dx))
+            
+            #make sure angle is positive (0 to 360)
+            if angle< 0:
+                angle+= 360
+            
+            #adjust angle based on mouth direction
+            adjusted_angle = (angle - mouth_direction) % 360
+            
+            # Determine if point should be drawn (outside mouth opening)
+            should_draw= True
+            if adjusted_angle <=mouth_angle:  #in lower mouth opening
+                should_draw= False
+            if adjusted_angle>= (360 -mouth_angle):  # In upper mouth opening
+                should_draw =False
+                
+            if should_draw:
+                glVertex2f(x,y)
+                
+        glEnd()
+
 
     def generate_points(self):
         #Generate regular points with smaller grid size
@@ -211,7 +293,20 @@ class GameState:
 
 
     def move_pacman(self):
-        pass
+        new_x, new_y = self.pacman_x, self.pacman_y
+        current_speed = PACMAN_SPEED * self.speed_multiplier
+        
+        if self.keys['w']:
+            new_y+=current_speed
+        if self.keys['s']:
+            new_y-= current_speed
+        if self.keys['a']:
+            new_x -=current_speed
+        if self.keys['d']:
+            new_x+= current_speed
+
+        if not self.check_wall_collision(new_x,new_y,PACMAN_RADIUS):
+            self.pacman_x,self.pacman_y = new_x,new_y
 
     def move_enemies(self):
         # Add teleportation check
@@ -290,11 +385,37 @@ class GameState:
         self._check_enemy_collisions()
 
     def _check_point_collisions(self):
-        pass
+        #Check regular points
+        for point in self.regular_points[:]:
+            x,y =point["pos"]
+            # Calculate distance between pacman and point
+            distance =math.sqrt((self.pacman_x - x)**2 + (self.pacman_y - y)**2)
+            
+            # If pacman touches the point
+            if distance<=(PACMAN_RADIUS+ POINT_RADIUS):
+                self.regular_points.remove(point)
+                self.score +=point["value"]
+
+        # Check bonus points
+        for point in self.bonus_points[:]:
+            x, y =point["pos"]
+            # Calculate distance for bonus points
+            distance= math.sqrt((self.pacman_x -x)**2 +(self.pacman_y-y)**2)
+            
+            # If pacman touches the bonus point
+            if distance<=(PACMAN_RADIUS + BONUS_POINT_RADIUS):
+                self.bonus_points.remove(point)
+                self.score+=point["value"]
 
     def _check_powerup_collisions(self):
         #Handle power-up collision
-        pass
+        for power_up in self.power_ups[:]:
+            px,py =power_up['pos']
+            distance_squared= (self.pacman_x -px)**2 +(self.pacman_y- py)**2
+            collision_distance=(PACMAN_RADIUS +POWER_UP_RADIUS)**2
+            
+            if distance_squared <=collision_distance:
+                self.collect_power_up(power_up)
 
     def _check_enemy_collisions(self):
         """Handle enemy collisions with power-up state"""
@@ -320,10 +441,27 @@ class GameState:
                         self.game_state = GAME_OVER
 
     def update_power_ups(self):
-        pass
+        current_time = time.time()
+        
+        #Check if power-up effect has expired
+        if self.is_powered_up and current_time > self.power_up_end_time:
+            self.is_powered_up = False
+        
+        # Random chance to spawn new power-up
+        if random.random()< POWER_UP_SPAWN_CHANCE:
+            x,y= self.get_random_valid_position()
+            self.power_ups.append({'pos': (x, y)})
 
     def collect_power_up(self, power_up):
-        pass
+        #Remove the collected power-up
+        self.power_ups.remove(power_up)
+        
+        #Activate power-up effect
+        self.is_powered_up = True
+        
+        #Set expiration time
+        current_time = time.time()
+        self.power_up_end_time = current_time + POWER_UP_DURATION
 
 
 def draw_menu():
