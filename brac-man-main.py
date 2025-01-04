@@ -581,7 +581,67 @@ def initialize():
 
 
 def show_screen():
-    pass
+ 
+    glClear(GL_COLOR_BUFFER_BIT)
+    
+    if game_state.game_state ==MENU:
+        draw_menu()
+    elif game_state.game_state== PLAYING:
+        game_state.move_pacman()
+        game_state.check_collisions()
+        game_state.update_power_ups()
+        game_state.check_win_condition()
+        
+        if time.time()- game_state.start_time >5:
+            game_state.enemies_can_move = True
+        if game_state.enemies_can_move:
+            game_state.move_enemies()
+        
+        draw_walls()
+        game_state.draw_pacman()
+        draw_points()
+        game_state.update_power_ups()
+        
+        #Draw power-ups
+        for power_up in game_state.power_ups:
+            draw_power_up(power_up['pos'][0], power_up['pos'][1])
+            
+        #Change enemy color when powered up
+        if game_state.is_powered_up:
+            glColor3f(1.0, 0.0, 1.0)  #Blue when vulnerable
+            
+        draw_enemies()
+        draw_score()
+        
+        if game_state.lives<= 0:
+            game_state.game_state = GAME_OVER
+    elif game_state.game_state == GAME_OVER:
+        glColor3f(1.0, 0.0, 0.0)
+        glRasterPos2f(WIN_WIDTH //2 -50, WIN_HEIGHT// 2)
+        for char in "GAME OVER":
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,ord(char))
+        
+        glRasterPos2f(WIN_WIDTH // 2-70, WIN_HEIGHT// 2 - 40)
+        for char in "Press M for Menu":
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+    elif game_state.game_state == GAME_WON:  # Add win screen
+        glColor3f(0.0, 1.0, 0.0)  # Green color for win message
+        
+        #Draw congratulations message
+        glRasterPos2f(WIN_WIDTH // 2-100,WIN_HEIGHT// 2 +20)
+        for char in "CONGRATULATIONS!":
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+            
+        glRasterPos2f(WIN_WIDTH //2 -80, WIN_HEIGHT //2 - 20)
+        for char in f"Final Score: {game_state.score}":
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+        
+        glRasterPos2f(WIN_WIDTH //2- 70, WIN_HEIGHT// 2 - 60)
+        for char in "Press M for Menu":
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+    
+    glutSwapBuffers()
+
 
 def key_pressed(key,x, y):
     if game_state.game_state== PLAYING:
