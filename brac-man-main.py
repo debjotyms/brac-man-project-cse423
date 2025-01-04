@@ -485,10 +485,25 @@ def draw_menu():
 
 
 def check_menu_click(x,y):
-    pass
+    # Convert window coordinates to OpenGL coordinates
+    y = WIN_HEIGHT- y
+    
+    # Check each menu item
+    for i in range(3):
+        item_y = WIN_HEIGHT//2 - i * 50
+        if WIN_WIDTH//2-40 <=x<=WIN_WIDTH//2 + 40 and item_y-10 <=y<=item_y +10:
+            if i== 0:  # PLAY
+                game_state.game_state =PLAYING
+            elif i ==1:  # DIFFICULTY
+                game_state.set_difficulty(game_state.speed_multiplier == 2.0)
+            elif i== 2:  # EXIT
+                os._exit(0)
 
 def mouse_click(button, state, x, y):
-    pass
+    if button ==GLUT_LEFT_BUTTON and state== GLUT_DOWN:
+        if game_state.game_state ==MENU:
+            check_menu_click(x, y)
+
 
 # Drawing functions
 def draw_circle(cx,cy,radius):
