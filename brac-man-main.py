@@ -84,7 +84,33 @@ def convert_from_zone0(x, y,zone):
     return x,y
 
 def midpoint_line(x1, y1,x2, y2,zone):
-    pass
+    points = []
+    dx=x2 -x1
+    dy= y2 -y1
+    d= 2*dy -dx  #decision variable
+    incE =2*dy    #Increment for moving to east pixel
+    incNE= 2*(dy -dx)  #increment for moving to north-east pixel
+    
+    x=x1
+    y=y1
+    
+    #add initial point
+    cx, cy = convert_from_zone0(x, y, zone)
+    points.append((cx, cy))
+    
+    while x<x2:
+        if d<=0:
+            d+=incE
+            x += 1
+        else:
+            d+=incNE
+            x +=1
+            y+=1
+            
+        cx,cy =convert_from_zone0(x,y, zone)
+        points.append((cx,cy))
+    
+    return points
 
 def mpl_points(x1,y1, x2,y2):
     #special cases first handle 
