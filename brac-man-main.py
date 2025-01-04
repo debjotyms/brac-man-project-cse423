@@ -566,7 +566,11 @@ def draw_enemies():
                     draw_circle(enemy['x'], enemy['y'], ENEMY_RADIUS * 1.2)
 
 def draw_score():
-    pass
+    glColor3f(1.0, 1.0,1.0)  # White text
+    glRasterPos2f(10, WIN_HEIGHT -20)
+    score_text = f"Score: {game_state.score} Lives: {game_state.lives} Enemies: {len(game_state.enemies)}"
+    for char in score_text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,ord(char))
 
 def initialize():
     glClearColor(0.0, 0.0, 0.0, 1.0)
