@@ -102,12 +102,95 @@ GAME_OVER= 2
 GAME_WON =3  
 class GameState:
     def __init__(self):
-        pass
+        self.score= 0 
+        self.lives =3
+        self.start_time =time.time()
+        self.last_teleport_time =time.time()
+        self.game_over= False
+        self.enemies_can_move= False
+        self.pacman_x, self.pacman_y =40,40
+        self.keys={'w': False, 'a': False, 's': False, 'd': False}
+        self.game_state= MENU
+        self.speed_multiplier =2.0  # Default easy mode
+        self.power_ups =[]
+        self.is_powered_up= False
+        self.power_up_end_time =0
+        self.reset_game()
 
 
     def reset_game(self):
-        # Notun kore khela shuru
-        pass
+        #New game start
+        self.score = 0
+        self.lives = 3
+        self.start_time = time.time()
+        self.last_teleport_time = time.time()  # Reset teleport timer
+        self.enemies_can_move = False
+        self.pacman_x, self.pacman_y = 40, 40
+        self.keys = {'w': False, 'a': False, 's': False, 'd': False}
+        self.walls = [
+            # Outer walls
+            (0, 0, WIN_WIDTH, 0),
+            (0, WIN_HEIGHT, WIN_WIDTH, WIN_HEIGHT),
+            (0, 0, 0, WIN_HEIGHT),
+            (WIN_WIDTH, 0, WIN_WIDTH, WIN_HEIGHT),
+
+            #inner vertical walls
+            (100,100,100,250),
+            (100,350,100,700),
+            
+            (200, 200,200, 250),
+            (200, 350, 200,450),
+            (200,550, 200, 700),
+            
+            (300, 100,300, 150),
+            (300,250, 300, 450),
+            (300, 550, 300, 650),
+            
+            (400,100, 400,250),
+            (400, 350, 400, 550),
+            
+            (500, 200,500, 350),
+            (500,450, 500,650),
+            
+            (600,100,600, 150),
+            (600, 250, 600,550),
+            (600,650,600, 700),
+            
+            (700,100,700,250),
+            (700,350, 700,650),
+
+            #inner horizontal walls
+            (100, 100, 250, 100),
+            (350, 100, 700, 100),
+            
+            (200,200, 350,200),
+            (450, 200,600,200),
+            
+            (100, 300, 150,300),
+            (250,300, 450,300),
+            (550, 300, 700,300),
+            
+            (200,400,250, 400),
+            (350,400, 550,400),
+            
+            (100, 500,150, 500),
+            (250,500, 450, 500),
+            (550, 500,650, 500),
+            
+            (200,600, 350,600),
+            (450,600,550, 600),
+            
+            (100,700, 250,700),
+            (350,700,650, 700),
+     
+        ]
+        self.regular_points =[]
+        self.bonus_points= []
+        self.power_ups= []
+        self.is_powered_up=False
+        self.power_up_end_time=0
+        self.generate_points()
+        self.enemies= self.initialize_enemies()
         
     def set_difficulty(self,is_hard_mode):
         self.speed_multiplier=5.0 if is_hard_mode else 2.0
