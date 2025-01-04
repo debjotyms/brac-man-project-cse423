@@ -87,7 +87,27 @@ def midpoint_line(x1, y1,x2, y2,zone):
     pass
 
 def mpl_points(x1,y1, x2,y2):
-    pass
+    #special cases first handle 
+    if x1 ==x2:  #vertical line
+        y_start,y_end= min(y1,y2),max(y1,y2)
+        return [(x1,y) for y in range(y_start,y_end +1)]
+    
+    if y1==y2:  #horizontal line
+        x_start,x_end =min(x1, x2), max(x1, x2)
+        return [(x, y1) for x in range(x_start, x_end + 1)]
+    
+    #find the zone and convert points
+    zone =find_zone(x1, y1, x2, y2)
+    x1_conv,y1_conv=convert_to_zone0(x1, y1, zone)
+    x2_conv, y2_conv =convert_to_zone0(x2, y2, zone)
+    
+    #ensure points are in correct order (left to right)
+    if x1_conv>x2_conv:
+        x1_conv,x2_conv= x2_conv,x1_conv
+        y1_conv,y2_conv =y2_conv,y1_conv
+    
+    #draw the line using midpoint algorithm
+    return midpoint_line(x1_conv, y1_conv, x2_conv, y2_conv, zone)
 
 def circle_points(x, y, cx, cy, points):
     pass
