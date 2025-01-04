@@ -507,7 +507,14 @@ def draw_walls():
 
 
 def draw_points():
-    pass
+    glColor3f(1.0,0.71, 0.76)  # Pink color (RGB values for pink)
+    for point in game_state.regular_points:
+        draw_circle(point["pos"][0], point["pos"][1], POINT_RADIUS)
+
+    # Draw bonus points
+    glColor3f(1.0, 1.0,1.0)  #White for bonus points
+    for point in game_state.bonus_points:
+        draw_circle(point["pos"][0], point["pos"][1], BONUS_POINT_RADIUS)
 
 def draw_power_up(cx,cy):
     glColor3f(0.0, 1.0,1.0)  # Cyan color
