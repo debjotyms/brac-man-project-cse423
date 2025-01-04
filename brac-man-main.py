@@ -456,7 +456,32 @@ class GameState:
 
 
 def draw_menu():
-    pass
+    #Menu screen 
+    glClear(GL_COLOR_BUFFER_BIT)
+    glColor3f(1.0, 1.0, 0.0)  #Yellow text
+    
+    title ="CSE423 Project (Group 9) "
+    glRasterPos2f(WIN_WIDTH//2 -70, WIN_HEIGHT//2+100)
+    for char in title:
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(char))
+        
+    title = "Welcome to BRAC-MAN"
+    glRasterPos2f(WIN_WIDTH//2-60, WIN_HEIGHT//2+50)
+    for char in title:
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(char))
+        
+    
+    menu_items= [
+        "PLAY",
+        "EASY MODE" if game_state.speed_multiplier==2.0 else "HARD MODE",
+        "EXIT"
+    ]
+    
+    for i, item in enumerate(menu_items):
+        y_pos = WIN_HEIGHT//2 -i * 50
+        glRasterPos2f(WIN_WIDTH//2- 40,y_pos)
+        for char in item:
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
 
 
 def check_menu_click(x,y):
