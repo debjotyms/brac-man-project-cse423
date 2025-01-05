@@ -328,8 +328,7 @@ class GameState:
 
 
     def generate_points(self):
-        #Generate regular points with smaller grid size
-        grid_size =50  #Reduced from 100 to 50 for more points
+        grid_size =50
         for x in range(grid_size,WIN_WIDTH -grid_size,grid_size):
             for y in range(grid_size,WIN_HEIGHT-grid_size,grid_size):
                 #add extra check for minimum wall distance
